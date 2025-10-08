@@ -1,0 +1,7 @@
+[build]
+publish = "_site"
+command = "quarto render"
+
+# Install Quarto automatically in Netlify builds
+[[plugins]]
+package = "@quarto/netlify-plugin-quarto"
