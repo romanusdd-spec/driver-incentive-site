@@ -2,27 +2,38 @@
 <html>
 <head>
   <meta charset="utf-8"/>
-  <title>Login</title>
-  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+  <title>Login Driver</title>
   <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; padding: 2rem; }
-    .card { max-width: 420px; border: 1px solid #ddd; border-radius: 8px; padding: 1rem; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; padding: 2rem; max-width: 560px; margin: 0 auto; }
+    form { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; }
+    label { display:block; margin: .5rem 0 .25rem; }
+    button { margin-top: 1rem; padding: .6rem 1rem; }
+    .err { color: #b00020; margin-bottom: .75rem; }
   </style>
 </head>
 <body>
-  <h2>Login</h2>
-  <div class="card">
-    <p>Silakan login untuk mengakses dashboard.</p>
-    <button onclick="netlifyIdentity.open()">Login / Register</button>
-  </div>
+  <h2>Login Driver</h2>
+  <p>Pilih username dan masukkan password untuk melihat dashboard.</p>
+
+  <form method="POST" action="/.netlify/functions/login">
+    <div class="err" id="err" style="display:none;">Username atau password salah.</div>
+
+    <label for="username">Username</label>
+    <select id="username" name="username" required>
+      <option value="dodi">dodi</option>
+      <option value="alice">alice</option>
+      <option value="bob">bob</option>
+    </select>
+
+    <label for="password">Password</label>
+    <input id="password" name="password" type="password" required />
+
+    <button type="submit">Masuk</button>
+  </form>
 
   <script>
-    netlifyIdentity.on('login', user => {
-      const roles = (user && user.app_metadata && user.app_metadata.roles) || [];
-      const slug = roles[0] || "";
-      window.location.href = slug ? `/drivers/${slug}.html` : `/`;
-    });
-    netlifyIdentity.init();
+    const params = new URLSearchParams(location.search);
+    if (params.get("error")) document.getElementById("err").style.display = "block";
   </script>
 </body>
 </html>
