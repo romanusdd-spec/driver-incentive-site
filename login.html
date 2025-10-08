@@ -18,14 +18,9 @@
 
   <script>
     netlifyIdentity.on('login', user => {
-      try {
-        const roles = (user && user.app_metadata && user.app_metadata.roles) || [];
-        const slug = roles[0] || "";
-        if (slug) window.location.href = `/drivers/${slug}/`;
-        else window.location.href = `/`;
-      } catch(e) {
-        window.location.href = `/`;
-      }
+      const roles = (user && user.app_metadata && user.app_metadata.roles) || [];
+      const slug = roles[0] || "";
+      window.location.href = slug ? `/drivers/${slug}.html` : `/`;
     });
     netlifyIdentity.init();
   </script>

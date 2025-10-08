@@ -1,5 +1,12 @@
 [
   {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Driver Incentive — Dashboard",
+    "section": "",
+    "text": "Selamat datang. Silakan Login terlebih dahulu untuk melihat data Anda.\nGunakan menu Login di atas.\n\nSetelah login di Netlify (nanti saat deploy), Anda akan diarahkan ke halaman driver sesuai akses (role)."
+  },
+  {
     "objectID": "drivers/bob.html",
     "href": "drivers/bob.html",
     "title": "Ringkasan Driver — Bob",

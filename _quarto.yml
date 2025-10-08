@@ -18,9 +18,13 @@ format:
     page-layout: article
     code-tools: false
 
-# <<< add this
+
 execute:
   echo: false       # hide code blocks
   message: false    # hide library() messages
   warning: false    # hide warnings
-# >>>
+
+
+resources:
+  - login.html
+  - _redirects
