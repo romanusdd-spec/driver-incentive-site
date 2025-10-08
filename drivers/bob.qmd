@@ -1,0 +1,131 @@
+---
+title: "Ringkasan Driver — Bob"
+format:
+  html:
+    toc: true
+---
+
+
+```{r}
+#| label: setup
+library(tidyverse)
+library(scales)
+library(lubridate)
+library(here)
+
+# helpers
+indo_month <- function(m) c("Januari","Februari","Maret","April","Mei","Juni",
+                            "Juli","Agustus","September","Oktober","November","Desember")[as.integer(m)]
+fmt_rp <- function(x) paste0("Rp. ", formatC(as.numeric(x), format = "f", big.mark = ".", decimal.mark = ",", digits = 0))
+fmt_hms <- function(sec){
+  sec <- as.numeric(sec); h <- floor(sec/3600); m <- floor((sec %% 3600)/60); s <- round(sec %% 60)
+  sprintf("%02d:%02d:%02d", h, m, s)
+}
+
+# --- Read CSV robustly (handles comma or semicolon CSV) ---
+fp <- here::here("data", "driver_trips.csv")
+
+df <- tryCatch(
+  readr::read_csv(fp, show_col_types = FALSE),
+  error = function(e) {
+    # fallback to semicolon-delimited
+    readr::read_csv2(fp, show_col_types = FALSE)
+  }
+)
+
+# Validate required columns
+required_cols <- c("driver","trip_id","date","km_driving","dur_driving_s",
+                   "dur_parking_s","incentive_rp","sj_balikan")
+missing <- setdiff(required_cols, names(df))
+if (length(missing)) {
+  stop("CSV missing columns: ", paste(missing, collapse = ", "))
+}
+
+# Ensure types
+df <- df %>%
+  mutate(
+    driver = as.character(driver),
+    trip_id = as.character(trip_id),
+    date = as.Date(date),
+    km_driving = as.double(km_driving),
+    dur_driving_s = as.double(dur_driving_s),
+    dur_parking_s = as.double(dur_parking_s),
+    incentive_rp = as.double(incentive_rp),
+    sj_balikan = as.integer(sj_balikan)
+  )
+
+# --- Select driver for this page ---
+drv <- "bob"  # for alice.qmd / bob.qmd set this string to "alice" / "bob"
+
+# Filter
+df_drv <- df %>% filter(tolower(.data$driver) == tolower(drv))
+stopifnot(nrow(df_drv) > 0)
+
+# Use the month of the latest date in this driver's data
+last_day <- max(df_drv$date, na.rm = TRUE)
+df_m <- df_drv %>%
+  filter(year(date) == year(last_day), month(date) == month(last_day))
+
+# KPIs
+kpi_incent <- sum(df_m$incentive_rp, na.rm = TRUE)
+kpi_trips  <- nrow(df_m)
+kpi_km     <- sum(df_m$km_driving, na.rm = TRUE)
+kpi_drive  <- sum(df_m$dur_driving_s, na.rm = TRUE)
+kpi_park   <- sum(df_m$dur_parking_s, na.rm = TRUE)
+kpi_sj     <- sum(df_m$sj_balikan, na.rm = TRUE)
+```
+
+
+
+
+
+Selamat Datang, **`r tools::toTitleCase(drv)`**
+
+---
+
+::: {.well}
+🚚 Hati-hati ketika menyetir di jalan — ingat keluarga di rumah. 🏡
+:::
+
+::: {.well}
+Akumulasi insentif per tanggal **`r day(last_day)` `r indo_month(month(last_day))`** adalah **`r fmt_rp(kpi_incent)`**
+:::
+
+---
+
+### KPIs (Bulan Berjalan)
+- Jumlah Trip: **`r kpi_trips`**  
+- Jumlah KM: **`r formatC(kpi_km, big.mark=".", decimal.mark=",", format="f", digits=0)`**  
+- Durasi Berkendara: **`r fmt_hms(kpi_drive)`**  
+- Durasi Parkir: **`r fmt_hms(kpi_park)`**  
+- SJ Balikan: **`r kpi_sj`**
+
+
+```{r}
+#| label: plot-daily
+daily <- df_m %>% count(date, wt = incentive_rp, name = "incentive_rp")
+ggplot(daily, aes(date, incentive_rp)) +
+  geom_col() +
+  labs(title = "Ringkasan Insentif Harian (Bulan Berjalan)",
+       x = "Tanggal", y = "Insentif") +
+  scale_y_continuous(labels = label_number(prefix = "Rp ", big.mark = ".", decimal.mark = ",")) +
+  theme_minimal()
+```
+
+
+
+```{r}
+#| label: table-detail
+df_m %>%
+  transmute(
+    Tanggal = date,
+    `Trip ID` = trip_id,
+    `KM Berkendara` = km_driving,
+    `Durasi Berkendara` = fmt_hms(dur_driving_s),
+    `Durasi Parkir` = fmt_hms(dur_parking_s),
+    `Insentif (Rp)` = incentive_rp,
+    `SJ Balikan` = sj_balikan
+  ) %>%
+  arrange(desc(Tanggal)) %>%
+  knitr::kable()
+```

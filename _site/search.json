@@ -1,0 +1,23 @@
+[
+  {
+    "objectID": "drivers/bob.html",
+    "href": "drivers/bob.html",
+    "title": "Ringkasan Driver — Bob",
+    "section": "",
+    "text": "Selamat Datang, Bob\n\n\n🚚 Hati-hati ketika menyetir di jalan — ingat keluarga di rumah. 🏡\n\n\nAkumulasi insentif per tanggal 4 September adalah Rp. 180.000\n\n\n\nKPIs (Bulan Berjalan)\n\nJumlah Trip: 1\n\nJumlah KM: 110\n\nDurasi Berkendara: 02:45:00\n\nDurasi Parkir: 00:43:20\n\nSJ Balikan: 1\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nTanggal\nTrip ID\nKM Berkendara\nDurasi Berkendara\nDurasi Parkir\nInsentif (Rp)\nSJ Balikan\n\n\n\n\n2025-09-04\nT020\n110\n02:45:00\n00:43:20\n180000\n1"
+  },
+  {
+    "objectID": "drivers/alice.html",
+    "href": "drivers/alice.html",
+    "title": "Ringkasan Driver — Alice",
+    "section": "",
+    "text": "Selamat Datang, Alice\n\n\n🚚 Hati-hati ketika menyetir di jalan — ingat keluarga di rumah. 🏡\n\n\nAkumulasi insentif per tanggal 2 September adalah Rp. 150.000\n\n\n\nKPIs (Bulan Berjalan)\n\nJumlah Trip: 1\n\nJumlah KM: 90\n\nDurasi Berkendara: 02:15:00\n\nDurasi Parkir: 00:40:00\n\nSJ Balikan: 0\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nTanggal\nTrip ID\nKM Berkendara\nDurasi Berkendara\nDurasi Parkir\nInsentif (Rp)\nSJ Balikan\n\n\n\n\n2025-09-02\nT010\n90\n02:15:00\n00:40:00\n150000\n0"
+  },
+  {
+    "objectID": "drivers/dodi.html",
+    "href": "drivers/dodi.html",
+    "title": "Ringkasan Driver — Dodi",
+    "section": "",
+    "text": "Selamat Datang, Dodi\n\n\n🚚 Hati-hati ketika menyetir di jalan — ingat keluarga di rumah. 🏡\n\n\nAkumulasi insentif per tanggal 3 September adalah Rp. 330.000\n\n\n\nKPIs (Bulan Berjalan)\n\nJumlah Trip: 2\n\nJumlah KM: 195\n\nDurasi Berkendara: 05:00:00\n\nDurasi Parkir: 01:30:00\n\nSJ Balikan: 1\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nTanggal\nTrip ID\nKM Berkendara\nDurasi Berkendara\nDurasi Parkir\nInsentif (Rp)\nSJ Balikan\n\n\n\n\n2025-09-03\nT002\n75\n02:00:00\n00:30:00\n130000\n0\n\n\n2025-09-01\nT001\n120\n03:00:00\n01:00:00\n200000\n1"
+  }
+]

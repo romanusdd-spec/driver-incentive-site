@@ -1,0 +1,26 @@
+project:
+  type: website
+  output-dir: _site
+
+website:
+  title: "🚚 Driver Incentive"
+  navbar:
+    left:
+      - text: "Beranda"
+        href: index.qmd
+      - text: "Login"
+        href: login.html
+
+format:
+  html:
+    theme: flatly
+    toc: true
+    page-layout: article
+    code-tools: false
+
+# <<< add this
+execute:
+  echo: false       # hide code blocks
+  message: false    # hide library() messages
+  warning: false    # hide warnings
+# >>>

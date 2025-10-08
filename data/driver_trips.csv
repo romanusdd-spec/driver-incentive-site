@@ -1,0 +1,5 @@
+driver,trip_id,date,km_driving,dur_driving_s,dur_parking_s,incentive_rp,sj_balikan
+dodi,T001,2025-09-01,120,10800,3600,200000,1
+dodi,T002,2025-09-03,75,7200,1800,130000,0
+alice,T010,2025-09-02,90,8100,2400,150000,0
+bob,T020,2025-09-04,110,9900,2600,180000,1
