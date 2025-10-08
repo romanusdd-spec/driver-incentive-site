@@ -1,11 +1,6 @@
 [build]
-<<<<<<< HEAD
 publish = "_site"
-=======
-publish = "_site"       # still publishing your rendered pages (no Quarto build)
 
-# Edge function to protect /drivers/*
 [[edge_functions]]
 function = "protect"
 path = "/drivers/*"
->>>>>>> 38e6457 (commit)
