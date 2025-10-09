@@ -3,9 +3,17 @@ import { USERS } from "./users.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { serialize } from "cookie";
+import { createHash } from "crypto";
 
 const COOKIE_NAME = "driver_auth";
 const MAX_AGE = 60 * 60 * 8; // 8 hours
+
+function isSha256Hex(x) {
+  return typeof x === "string" && /^[0-9a-f]{64}$/i.test(x);
+}
+function sha256Hex(s) {
+  return createHash("sha256").update(s, "utf8").digest("hex");
+}
 
 export async function handler(event) {
   if (event.httpMethod !== "POST") {
@@ -22,25 +30,26 @@ export async function handler(event) {
   const password = (params.get("password") || "").trim();
 
   const hash = USERS[username];
+  if (!hash) {
+    return { statusCode: 302, headers: { Location: "/login?error=nohash" }, body: "" };
+  }
 
-  // ======== TEMP DEBUG SECTION ========
+  // Accept both legacy SHA256 hex and bcrypt
+  let ok = false;
   try {
-    console.log("[login] user:", username, "| hasHash:", !!hash);
-    if (!hash) {
-      return { statusCode: 302, headers: { Location: "/login?error=nohash" }, body: "" };
-    }
-
-    const ok = bcrypt.compareSync(password, hash);
-    console.log("[login] compare result:", ok);
-
-    if (!ok) {
-      return { statusCode: 302, headers: { Location: "/login?error=badpass" }, body: "" };
+    if (isSha256Hex(hash)) {
+      ok = sha256Hex(password) === hash;
+    } else {
+      ok = bcrypt.compareSync(password, hash);
     }
   } catch (e) {
-    console.error("[login] bcrypt error:", e && e.message);
-    return { statusCode: 302, headers: { Location: "/login?error=bcrypterr" }, body: "" };
+    // optional: add a minimal code to help debugging
+    return { statusCode: 302, headers: { Location: "/login?error=compare" }, body: "" };
   }
-  // ======== END DEBUG SECTION ========
+
+  if (!ok) {
+    return { statusCode: 302, headers: { Location: "/login?error=1" }, body: "" };
+  }
 
   const JWT_SECRET = process.env.JWT_SECRET || "CHANGE_ME_IN_NETLIFY_ENV";
   const token = jwt.sign({ user: username }, JWT_SECRET, { expiresIn: MAX_AGE });
@@ -53,7 +62,6 @@ export async function handler(event) {
     maxAge: MAX_AGE
   });
 
-  // success → send them to their page
   return {
     statusCode: 302,
     headers: { "Set-Cookie": cookie, Location: `/drivers/${username}.html` },
