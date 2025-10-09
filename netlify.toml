@@ -1,6 +1,7 @@
 [build]
 publish = "_site"
+functions = "netlify/functions"
 
 [[edge_functions]]
-function = "protect"
 path = "/drivers/*"
+function = "protect"

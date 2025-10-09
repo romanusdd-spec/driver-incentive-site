@@ -134,22 +134,117 @@ ul.task-list li input[type="checkbox"] {
 <p>🚚 Hati-hati ketika menyetir di jalan — ingat keluarga di rumah. 🏡</p>
 </div>
 <div class="well">
-<p>Akumulasi insentif per tanggal <strong>4 September</strong> adalah <strong>Rp. 180.000</strong></p>
+<p>Akumulasi insentif per tanggal <strong><span id="sum_day">–</span> <span id="sum_month">–</span></strong> adalah <strong><span id="kpi_incent">–</span></strong></p>
 </div>
 <hr>
 <section id="kpis-bulan-berjalan" class="level3">
 <h3 class="anchored" data-anchor-id="kpis-bulan-berjalan">KPIs (Bulan Berjalan)</h3>
 <ul>
-<li>Jumlah Trip: <strong>1</strong><br>
+<li>Jumlah Trip: <strong><span id="kpi_trips">–</span></strong><br>
 </li>
-<li>Jumlah KM: <strong>110</strong><br>
+<li>Jumlah KM: <strong><span id="kpi_km">–</span></strong><br>
 </li>
-<li>Durasi Berkendara: <strong>02:45:00</strong><br>
+<li>Durasi Berkendara: <strong><span id="kpi_drive">–</span></strong><br>
 </li>
-<li>Durasi Parkir: <strong>00:43:20</strong><br>
+<li>Durasi Parkir: <strong><span id="kpi_park">–</span></strong><br>
 </li>
-<li>SJ Balikan: <strong>1</strong></li>
+<li>SJ Balikan: <strong><span id="kpi_sj">–</span></strong></li>
 </ul>
+<!-- CSV parser -->
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script>
+(function () {
+  // === CONFIG ===
+  const RAW_CSV_URL =
+    "https://raw.githubusercontent.com/romanusdd-spec/driver-incentive-site/refs/heads/data-updates/data/driver_trips.csv";
+
+  // Driver name from file name (drivers/dodi.html -> "dodi")
+  const path = (location.pathname || "").toLowerCase();
+  const m = path.match(/\/drivers\/([^\/]+)\.html$/);
+  const DRIVER = m ? m[1] : ""; // "dodi", "alice", "bob", etc.
+
+  // Helpers
+  const indoMonth = (i) => ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"][i];
+  const fmtRp = (x) => {
+    const n = Math.round(Number(x) || 0);
+    return "Rp. " + n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  };
+  const fmtHMS = (sec) => {
+    sec = Math.round(Number(sec) || 0);
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = sec % 60;
+    const pad = (z) => String(z).padStart(2, "0");
+    return `${pad(h)}:${pad(m)}:${pad(s)}`;
+  };
+
+  // Safely set text in a #target if it exists
+  function setText(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+  }
+
+  // Load + compute
+  fetch(RAW_CSV_URL, { cache: "no-store" })
+    .then((r) => {
+      if (!r.ok) throw new Error("CSV fetch failed: " + r.status);
+      return r.text();
+    })
+    .then((csvText) => new Promise((resolve) => {
+      Papa.parse(csvText, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (res) => resolve(res.data)
+      });
+    }))
+    .then((rows) => {
+      if (!Array.isArray(rows) || !rows.length) throw new Error("CSV empty");
+      // Filter by driver (case-insensitive)
+      const drvRows = rows.filter(r => (r.driver || "").toLowerCase() === DRIVER);
+      if (!drvRows.length) throw new Error("No rows for driver: " + DRIVER);
+
+      // Convert fields
+      const parseDate = (d) => new Date(d); // assuming YYYY-MM-DD in CSV
+      drvRows.forEach(r => {
+        r._date = parseDate(r.date);
+        r._km   = Number(r.km_driving || 0);
+        r._drive= Number(r.dur_driving_s || 0);
+        r._park = Number(r.dur_parking_s || 0);
+        r._inc  = Number(r.incentive_rp || 0);
+        r._sj   = Number(r.sj_balikan || 0);
+      });
+
+      // Last day available for this driver
+      const last = drvRows.reduce((a, b) => (a._date > b._date ? a : b))._date;
+      const ly = last.getFullYear(), lm = last.getMonth();
+
+      // Month-to-date filter
+      const mtd = drvRows.filter(r => r._date.getFullYear() === ly && r._date.getMonth() === lm);
+
+      // KPIs
+      const kpi_trips  = mtd.length;
+      const kpi_km     = mtd.reduce((s, r) => s + r._km, 0);
+      const kpi_drive  = mtd.reduce((s, r) => s + r._drive, 0);
+      const kpi_park   = mtd.reduce((s, r) => s + r._park, 0);
+      const kpi_inc    = mtd.reduce((s, r) => s + r._inc, 0);
+      const kpi_sj     = mtd.reduce((s, r) => s + r._sj, 0);
+
+      // Paint the page
+      setText("sum_day",   String(last.getDate()));
+      setText("sum_month", indoMonth(lm));
+      setText("kpi_incent", fmtRp(kpi_inc));
+      setText("kpi_trips",  kpi_trips);
+      setText("kpi_km",     kpi_km.toLocaleString("id-ID"));
+      setText("kpi_drive",  fmtHMS(kpi_drive));
+      setText("kpi_park",   fmtHMS(kpi_park));
+      setText("kpi_sj",     kpi_sj);
+    })
+    .catch((err) => {
+      console.warn("[dashboard live update] fallback to static values:", err);
+      // If something goes wrong, your existing static R-rendered values remain visible.
+    });
+})();
+</script>
 <div class="cell">
 <div class="cell-output-display">
 <p><img src="bob_files/figure-html/plot-daily-1.png" class="img-fluid" width="672"></p>
