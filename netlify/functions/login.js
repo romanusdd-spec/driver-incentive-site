@@ -21,11 +21,26 @@ export async function handler(event) {
   const username = (params.get("username") || "").toLowerCase().trim();
   const password = (params.get("password") || "").trim();
 
-
   const hash = USERS[username];
-  if (!hash || !bcrypt.compareSync(password, hash)) {
-  return { statusCode: 302, headers: { Location: "/login?error=1" }, body: "" };
-}
+
+  // ======== TEMP DEBUG SECTION ========
+  try {
+    console.log("[login] user:", username, "| hasHash:", !!hash);
+    if (!hash) {
+      return { statusCode: 302, headers: { Location: "/login?error=nohash" }, body: "" };
+    }
+
+    const ok = bcrypt.compareSync(password, hash);
+    console.log("[login] compare result:", ok);
+
+    if (!ok) {
+      return { statusCode: 302, headers: { Location: "/login?error=badpass" }, body: "" };
+    }
+  } catch (e) {
+    console.error("[login] bcrypt error:", e && e.message);
+    return { statusCode: 302, headers: { Location: "/login?error=bcrypterr" }, body: "" };
+  }
+  // ======== END DEBUG SECTION ========
 
   const JWT_SECRET = process.env.JWT_SECRET || "CHANGE_ME_IN_NETLIFY_ENV";
   const token = jwt.sign({ user: username }, JWT_SECRET, { expiresIn: MAX_AGE });
