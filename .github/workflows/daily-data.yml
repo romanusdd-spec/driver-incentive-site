@@ -12,6 +12,7 @@ jobs:
       contents: write
 
     steps:
+      # 1) Checkout master so the R script is present
       - name: Checkout master
         uses: actions/checkout@v4
         with:
@@ -21,8 +22,8 @@ jobs:
       - name: Setup R
         uses: r-lib/actions/setup-r@v2
 
-      # ✅ Auto-install R packages listed below
-      - name: Setup R dependencies
+      # 2) Ensure packages exist BEFORE running the script (two layers of safety)
+      - name: Setup R dependencies (matrix)
         uses: r-lib/actions/setup-r-dependencies@v2
         with:
           packages: |
@@ -31,6 +32,13 @@ jobs:
             readr
             here
 
+      - name: Ensure packages (fallback)
+        run: |
+          Rscript -e 'pkgs <- c("tidyverse","lubridate","readr","here");
+                      miss <- pkgs[!vapply(pkgs, function(p) requireNamespace(p, quietly=TRUE), logical(1))];
+                      if (length(miss)) install.packages(miss, repos="https://cloud.r-project.org")'
+
+      # 3) Work on data-updates branch locally
       - name: Prepare data-updates branch
         run: |
           git fetch origin data-updates || true
@@ -43,9 +51,11 @@ jobs:
       - name: Prepare raw folder (placeholder)
         run: mkdir -p data/raw
 
+      # 4) Build the CSV
       - name: Build driver_trips.csv via R
         run: Rscript scripts/build_driver_trips.R
 
+      # 5) Commit & push if changed
       - name: Commit & push if changed
         run: |
           git config user.name "github-actions"
@@ -57,4 +67,5 @@ jobs:
           else
             echo "No data changes; nothing to commit."
           fi
+
 
