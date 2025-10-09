@@ -23,10 +23,9 @@ export async function handler(event) {
 
 
   const hash = USERS[username];
-  if (!hash || !["dodi123","alice123","bob123"].includes(password)) {
-    // wrong creds → back to login with ?error=1
-    return { statusCode: 302, headers: { Location: "/login?error=1" }, body: "" };
-  }
+  if (!hash || !bcrypt.compareSync(password, hash)) {
+  return { statusCode: 302, headers: { Location: "/login?error=1" }, body: "" };
+}
 
   const JWT_SECRET = process.env.JWT_SECRET || "CHANGE_ME_IN_NETLIFY_ENV";
   const token = jwt.sign({ user: username }, JWT_SECRET, { expiresIn: MAX_AGE });
