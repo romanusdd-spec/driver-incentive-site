@@ -1,8 +1,1 @@
-/drivers/dodi.html      /login  401!  Role=dodi
-/drivers/dodi_files/*   /login  401!  Role=dodi
-
-/drivers/alice.html     /login  401!  Role=alice
-/drivers/alice_files/*  /login  401!  Role=alice
-
-/drivers/bob.html       /login  401!  Role=bob
-/drivers/bob_files/*    /login  401!  Role=bob
+/login   /login.html   200

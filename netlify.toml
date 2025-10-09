@@ -1,6 +1,7 @@
 [build]
 publish = "_site"
 
-[[edge_functions]]
-function = "protect"
-path = "/drivers/*"
+# Temporarily disable protection to verify the files serve correctly
+# [[edge_functions]]
+# function = "protect"
+# path = "/drivers/*"
