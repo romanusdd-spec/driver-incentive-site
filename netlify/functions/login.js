@@ -18,8 +18,8 @@ export async function handler(event) {
   }
 
   const params = new URLSearchParams(event.body);
-  const username = (params.get("username") || "").toLowerCase();
-  const password = params.get("password") || "";
+  const username = (params.get("username") || "").toLowerCase().trim();
+  const password = (params.get("password") || "").trim();
 
   const hash = USERS[username];
   if (!hash || !bcrypt.compareSync(password, hash)) {
