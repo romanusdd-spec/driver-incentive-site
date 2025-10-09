@@ -21,6 +21,7 @@ export async function handler(event) {
   const username = (params.get("username") || "").toLowerCase().trim();
   const password = (params.get("password") || "").trim();
 
+
   const hash = USERS[username];
   if (!hash || !bcrypt.compareSync(password, hash)) {
     // wrong creds → back to login with ?error=1
