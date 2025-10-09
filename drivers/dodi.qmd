@@ -88,18 +88,114 @@ Selamat Datang, **`r tools::toTitleCase(drv)`**
 :::
 
 ::: {.well}
-Akumulasi insentif per tanggal **`r day(last_day)` `r indo_month(month(last_day))`** adalah **`r fmt_rp(kpi_incent)`**
+Akumulasi insentif per tanggal **<span id="sum_day">–</span> <span id="sum_month">–</span>** adalah **<span id="kpi_incent">–</span>**
 :::
 
 ---
 
 ### KPIs (Bulan Berjalan)
-- Jumlah Trip: **`r kpi_trips`**  
-- Jumlah KM: **`r formatC(kpi_km, big.mark=".", decimal.mark=",", format="f", digits=0)`**  
-- Durasi Berkendara: **`r fmt_hms(kpi_drive)`**  
-- Durasi Parkir: **`r fmt_hms(kpi_park)`**  
-- SJ Balikan: **`r kpi_sj`**
+- Jumlah Trip: **<span id="kpi_trips">–</span>**  
+- Jumlah KM: **<span id="kpi_km">–</span>**  
+- Durasi Berkendara: **<span id="kpi_drive">–</span>**  
+- Durasi Parkir: **<span id="kpi_park">–</span>**  
+- SJ Balikan: **<span id="kpi_sj">–</span>**
 
+<!-- CSV parser -->
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+<script>
+(function () {
+  // === CONFIG ===
+  const RAW_CSV_URL =
+    "https://raw.githubusercontent.com/romanusdd-spec/driver-incentive-site/refs/heads/data-updates/data/driver_trips.csv";
+
+  // Driver name from file name (drivers/dodi.html -> "dodi")
+  const path = (location.pathname || "").toLowerCase();
+  const m = path.match(/\/drivers\/([^\/]+)\.html$/);
+  const DRIVER = m ? m[1] : ""; // "dodi", "alice", "bob", etc.
+
+  // Helpers
+  const indoMonth = (i) => ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"][i];
+  const fmtRp = (x) => {
+    const n = Math.round(Number(x) || 0);
+    return "Rp. " + n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  };
+  const fmtHMS = (sec) => {
+    sec = Math.round(Number(sec) || 0);
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = sec % 60;
+    const pad = (z) => String(z).padStart(2, "0");
+    return `${pad(h)}:${pad(m)}:${pad(s)}`;
+  };
+
+  // Safely set text in a #target if it exists
+  function setText(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+  }
+
+  // Load + compute
+  fetch(RAW_CSV_URL, { cache: "no-store" })
+    .then((r) => {
+      if (!r.ok) throw new Error("CSV fetch failed: " + r.status);
+      return r.text();
+    })
+    .then((csvText) => new Promise((resolve) => {
+      Papa.parse(csvText, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (res) => resolve(res.data)
+      });
+    }))
+    .then((rows) => {
+      if (!Array.isArray(rows) || !rows.length) throw new Error("CSV empty");
+      // Filter by driver (case-insensitive)
+      const drvRows = rows.filter(r => (r.driver || "").toLowerCase() === DRIVER);
+      if (!drvRows.length) throw new Error("No rows for driver: " + DRIVER);
+
+      // Convert fields
+      const parseDate = (d) => new Date(d); // assuming YYYY-MM-DD in CSV
+      drvRows.forEach(r => {
+        r._date = parseDate(r.date);
+        r._km   = Number(r.km_driving || 0);
+        r._drive= Number(r.dur_driving_s || 0);
+        r._park = Number(r.dur_parking_s || 0);
+        r._inc  = Number(r.incentive_rp || 0);
+        r._sj   = Number(r.sj_balikan || 0);
+      });
+
+      // Last day available for this driver
+      const last = drvRows.reduce((a, b) => (a._date > b._date ? a : b))._date;
+      const ly = last.getFullYear(), lm = last.getMonth();
+
+      // Month-to-date filter
+      const mtd = drvRows.filter(r => r._date.getFullYear() === ly && r._date.getMonth() === lm);
+
+      // KPIs
+      const kpi_trips  = mtd.length;
+      const kpi_km     = mtd.reduce((s, r) => s + r._km, 0);
+      const kpi_drive  = mtd.reduce((s, r) => s + r._drive, 0);
+      const kpi_park   = mtd.reduce((s, r) => s + r._park, 0);
+      const kpi_inc    = mtd.reduce((s, r) => s + r._inc, 0);
+      const kpi_sj     = mtd.reduce((s, r) => s + r._sj, 0);
+
+      // Paint the page
+      setText("sum_day",   String(last.getDate()));
+      setText("sum_month", indoMonth(lm));
+      setText("kpi_incent", fmtRp(kpi_inc));
+      setText("kpi_trips",  kpi_trips);
+      setText("kpi_km",     kpi_km.toLocaleString("id-ID"));
+      setText("kpi_drive",  fmtHMS(kpi_drive));
+      setText("kpi_park",   fmtHMS(kpi_park));
+      setText("kpi_sj",     kpi_sj);
+    })
+    .catch((err) => {
+      console.warn("[dashboard live update] fallback to static values:", err);
+      // If something goes wrong, your existing static R-rendered values remain visible.
+    });
+})();
+</script>
 
 ```{r}
 #| label: plot-daily
